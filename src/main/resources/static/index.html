@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!--    <script type="text/javascript" src="https://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
+    --><!--<script type='text/javascript'
+            src='static/firebug-lite-compressed.js'></script>-->
+    <script src="static/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <style type="text/css">
+        * {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        .fileHeader {
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .subList {
+            padding: 10px;
+        }
+
+        .file {
+            background: yellow;
+            border-radius: 4px;
+            display: inline-block;
+            padding: 10px;
+            color: #666666;
+            cursor: pointer;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .file:hover {
+            box-shadow: 2px 2px 2px #666666;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div style="text-align: center; padding: 40px;">
+
+    <input id="pool" placeholder="输入连接数量" type="number">
+    <button onclick="connAll()">连接</button>
+    <button onclick="closeAll()">关闭</button>
+    <br/>
+    <input id="pathInput" placeholder="输入socket路径" type="text">
+    <button onclick="sendMsg()">发送消息</button>
+
+
+</div>
+<script>
+    var wsUri = "ws://localhost:9001/";
+
+    var connPool = [];
+
+    function connAll() {
+        closeAll();
+        connPool = [];
+        var sizeVal = $("#pool").val();
+        if (sizeVal) {
+            sizeVal = parseInt(sizeVal);
+        }
+        for (var i = 0; i < sizeVal; i++) {
+            var ws = new WS();
+
+            connPool.push(ws);
+        }
+    }
+
+    function closeAll() {
+        if (null != connPool)
+            connPool.forEach(function (t) {
+                t.close();
+            });
+        connPool = null;
+    }
+
+    function sendMsg() {
+        if (connPool) {
+            connPool.forEach(function (t) {
+                var clientId = new Date().getTime() + parseInt(Math.random() * 100) + new Date().getTime() + parseInt(Math.random() * 100);
+                var jsonMsg = {name: 'time:' + new Date().getTime()};
+                var path = $("#pathInput").val();
+                t.send(
+                    "appId:DemoApp\r\nclientId:" + clientId + "\r\nurl:" + path + "\r\n\r\n" + JSON.stringify(jsonMsg)
+                );
+            });
+        }
+    }
+
+    function WS() {
+        var self = this;
+        var webSocket = new WebSocket(wsUri);
+        self.ws = webSocket;
+
+        webSocket.onopen = function (event) {
+            console.log("onopen");
+            //发送身份信息给服务端记录和验证。
+            self.ws.send("appId:DemoApp\r\nclientId:123\r\n\r\n");
+        }
+
+        webSocket.onmessage = function (p1) {
+            console.log("onmessage:" + p1.data + "," + p1.origin);
+
+        }
+
+        webSocket.onclose = function (p1) {
+            console.log("onclose:" + p1)
+            if (null != connPool)
+                connPool.splice(connPool.indexOf(self), 1);
+        }
+
+        this.send = function (msg) {
+            self.ws.send(msg);
+        }
+
+        this.close = function () {
+            self.ws.close();
+        }
+    }
+
+    function getPort() {
+        var url = window.location.href;
+        var params = {};
+        if (url.indexOf("?") > 0) {
+            url = url.substring(url.indexOf("?") + 1);
+            url.split("&").forEach(function (e, i) {
+                var kvs = e.split("=");
+                params[kvs[0]] = kvs[1];
+            });
+        }
+        if (params.port) {
+            localStorage.setItem("port", params.port);
+            return params.port;
+        }
+        var port = localStorage.getItem("port");
+        return port ? port : 8081;
+    }
+</script>
+</body>
+</html>
