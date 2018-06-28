@@ -15,11 +15,13 @@ public class DemoAppHandlerService {
 
     @WebSocketHandler("/hello")
     public void hello(WebSocketUtil tools, WsInfo wsInfo) {
-        wsInfo.ws.send("hello11111,this is msg from server!" + Math.random());
+        tools.sendMsg(wsInfo,"hello11111,this is msg from server!" + Math.random());
+//        wsInfo.ws.send("hello11111,this is msg from server!" + Math.random());
     }
 
     @WebSocketHandler("/hello2")
     public void hello2(WebSocketUtil tools, WsInfo wsInfo) {
-        wsInfo.ws.send("hello222,this is msg from server!" + Math.random());
+        tools.sendMsg(wsInfo,"hello222222,this is msg from server!" + Math.random());
+//        wsInfo.ws.send("hello222,this is msg from server!" + Math.random());
     }
 }

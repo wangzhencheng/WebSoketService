@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * 封装的消息信息
+ *
  * @Author 王贞成
  * @Date 2018/5/10 10:53
  **/
@@ -18,6 +19,7 @@ public class WsInfo {
     public WebSocket ws;
     public Map<String, String> headers;
     public String body;
+    public String headerString=null;
 
     public WsInfo(Map<String, String> headers, String body, WebSocket ws) {
         this.headers = headers;
@@ -26,6 +28,7 @@ public class WsInfo {
         this.clientId = headers.get("clientId");
         this.tag = headers.get("tag");
         this.ws = ws;
+        this.headerString=headerString();
     }
 
     @Override
@@ -34,6 +37,24 @@ public class WsInfo {
                 "headers=" + headers +
                 ", body='" + body + '\'' +
                 '}';
+    }
+
+    /**
+     * 获取headerString
+     * @return
+     */
+    private String headerString() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> header : headers.entrySet()) {
+            sb.append(header.getKey() + ":" + header.getValue());
+            sb.append("\r\n");
+        }
+        if (headers.isEmpty()) {
+            sb.append("\r\n");
+        }
+        sb.append("\r\n");
+
+        return sb.toString();
     }
 
     /**

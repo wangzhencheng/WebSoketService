@@ -17,6 +17,7 @@ public class WebSocketUtil extends WebSocketServer {
 
     private Map<WebSocket, WsInfo> clienIdSockets;
     private CustomWebSocketListener customWebSocketListener;
+    private OnSendMsg onSendMsg;
 
 
     public WebSocketUtil(int port) {
@@ -25,6 +26,10 @@ public class WebSocketUtil extends WebSocketServer {
                 new HashMap<>()
         );
 
+    }
+
+    public void setOnSendMsg(OnSendMsg onSendMsg) {
+        this.onSendMsg = onSendMsg;
     }
 
     @Override
@@ -63,6 +68,9 @@ public class WebSocketUtil extends WebSocketServer {
         int successCount = 0;
         if (null != msg && wsInfo != null && (wsInfo.ws.getReadyState() == WebSocket.READYSTATE.OPEN
                 || wsInfo.ws.getReadyState() == WebSocket.READYSTATE.CONNECTING)) {
+            if (onSendMsg != null) {
+                msg = onSendMsg.onSendMsg(this, wsInfo, msg);
+            }
             wsInfo.ws.send(msg);
             successCount++;
         }
@@ -154,6 +162,10 @@ public class WebSocketUtil extends WebSocketServer {
 
     public void setCustomWebSocketListener(CustomWebSocketListener customWebSocketListener) {
         this.customWebSocketListener = customWebSocketListener;
+    }
+
+    public interface OnSendMsg {
+        String onSendMsg(WebSocketUtil webSocketUtil, WsInfo wsInfo, String msg);
     }
 
     /**

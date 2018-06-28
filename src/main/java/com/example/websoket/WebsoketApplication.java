@@ -3,6 +3,8 @@ package com.example.websoket;
 import com.example.websoket.wscore.URLWebSocketHandler;
 import com.example.websoket.wscore.WebSocketComponent;
 import com.example.websoket.service.DemoAppHandlerService;
+import com.example.websoket.wscore.WebSocketUtil;
+import com.example.websoket.wscore.WsInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -48,6 +50,12 @@ public class WebsoketApplication {
         WebSocketComponent webSocketComponent = new WebSocketComponent();
         webSocketComponent.setPort(9001);
         webSocketComponent.registerHandler(demoAppWebSocketHandler());
+        webSocketComponent.setOnSendMsg(new WebSocketUtil.OnSendMsg() {
+            @Override
+            public String onSendMsg(WebSocketUtil webSocketUtil, WsInfo wsInfo, String msg) {
+                return wsInfo.headerString+msg;
+            }
+        });
         return webSocketComponent;
     }
 

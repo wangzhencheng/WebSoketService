@@ -6,6 +6,7 @@ import java.util.HashMap;
 /**
  * 配合{@link WebSocketHandler}注册普通的bean为WebSocketHandler。
  * bean需要在{@link URLWebSocketHandler#registerHandler(Object)}添加注册
+ *
  * @Author 王贞成
  * @Date 2018/5/10 14:05
  **/
@@ -17,6 +18,11 @@ public class URLWebSocketHandler extends AppWebSocketHandler {
 
     public URLWebSocketHandler(String appId) {
         super(appId);
+    }
+
+    public URLWebSocketHandler(String appId, Object target) {
+        super(appId);
+        registerHandler(target);
     }
 
     /**

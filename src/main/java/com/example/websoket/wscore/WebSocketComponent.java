@@ -12,7 +12,7 @@ import java.util.List;
  * 管理websocket的一个工具。配置xxApplication即可。
  * 可以指定端口号。
  * 在{@link WebSocketComponent#registerHandler(WebSocketMsgHandler)}
- * 注册对应App的socket消息处理器。
+ * 注册对应App的socket消息处理器(通过添加头信息url:path 访问对应的Service)。
  *
  * @author 王贞成
  * @date 2018/5/10
@@ -22,6 +22,7 @@ public class WebSocketComponent implements InitializingBean, DisposableBean, Web
 
     private WebSocketUtil webSocketUtil;
     private List<WebSocketMsgHandler> handlers = Collections.synchronizedList(new ArrayList<>());
+    private WebSocketUtil.OnSendMsg onSendMsg;
 
     /**
      * 端口号
@@ -52,6 +53,10 @@ public class WebSocketComponent implements InitializingBean, DisposableBean, Web
         return this;
     }
 
+    public void setOnSendMsg(WebSocketUtil.OnSendMsg onSendMsg) {
+        this.onSendMsg = onSendMsg;
+    }
+
     /**
      * 自动启动WebSocket
      *
@@ -59,20 +64,39 @@ public class WebSocketComponent implements InitializingBean, DisposableBean, Web
      */
     @Override
     public void afterPropertiesSet() throws Exception {
+        start();
+    }
+
+    public synchronized void start() {
+        stop();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                webSocketUtil = new WebSocketUtil(port);
-                webSocketUtil.setCustomWebSocketListener(WebSocketComponent.this);
-                webSocketUtil.start();
+                try {
+                    webSocketUtil = new WebSocketUtil(port);
+                    webSocketUtil.setCustomWebSocketListener(WebSocketComponent.this);
+                    webSocketUtil.setOnSendMsg(WebSocketComponent.this.onSendMsg);
+                    webSocketUtil.start();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }).start();
     }
 
+    public synchronized void stop() {
+        try {
+            if (null != webSocketUtil)
+                webSocketUtil.stop();
+            webSocketUtil = null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     @Override
     public void destroy() throws Exception {
-        if (null != webSocketUtil)
-            webSocketUtil.stop();
+        stop();
     }
 
 
